@@ -29,7 +29,7 @@ def grab(win, name):
 
 
 app = wiz.App(lang="en")
-app.geometry("760x640+10+30")
+app.geometry("760x690+10+20")
 app.lift()
 app.attributes("-topmost", True)
 app.update()
@@ -52,7 +52,8 @@ for oid in app.eku:
 s["key_type"].set("RSA 3072")
 app.self_signed.set(True)
 nb = app.nb
-for idx, name in enumerate(["subject.png", "key.png", "san.png", "extensions.png"]):
+prefix = "macos" if sys.platform == "darwin" else "windows"
+for idx, name in enumerate(["subject", "key", "san", "extensions"]):
     nb.select(idx)
-    grab(app, name)
+    grab(app, f"{prefix}-{name}.png")
 app.destroy()

@@ -22,8 +22,8 @@ class App(tk.Tk):
         super().__init__()
         i18n.set_lang(lang or i18n.load_pref())
         self.title("Wiz CSR")
-        self.geometry("760x640")
-        self.minsize(700, 600)
+        self.geometry("760x690")
+        self.minsize(700, 650)
         self.state_cache = None
         self.frame = None
         self._build()
