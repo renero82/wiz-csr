@@ -37,7 +37,16 @@ class App(tk.Tk):
         ttk.Label(out, text="Nome file:").grid(row=1, column=0, sticky="w", padx=6, pady=4)
         ttk.Entry(out, textvariable=self.v["base"]).grid(row=1, column=1, sticky="ew", pady=4)
         ttk.Label(out, text="(vuoto = Common Name)").grid(row=1, column=2, padx=6)
-        ttk.Button(self, text="Genera chiave e CSR", command=self.generate).pack(pady=(0, 8), ipadx=16, ipady=4)
+        self.self_signed = tk.BooleanVar()
+        self.v["days"] = tk.StringVar(value="365")
+        ss = ttk.Frame(out)
+        ss.grid(row=2, column=0, columnspan=3, sticky="w", padx=6, pady=4)
+        ttk.Checkbutton(ss, text="Crea anche certificato autofirmato, validità (giorni):",
+                        variable=self.self_signed).pack(side="left")
+        ttk.Entry(ss, textvariable=self.v["days"], width=6).pack(side="left", padx=4)
+        ttk.Label(out, text="Ogni generazione crea una sottocartella nome_data-ora con key, csr, crt e info.txt.",
+                  foreground="gray").grid(row=3, column=0, columnspan=3, sticky="w", padx=6, pady=(0, 4))
+        ttk.Button(self, text="Genera", command=self.generate).pack(pady=(0, 8), ipadx=16, ipady=4)
 
     # ---- tab ----
     def _entry_rows(self, parent, rows):
@@ -137,6 +146,9 @@ class App(tk.Tk):
         pathlen = g("pathlen")
         if pathlen and not pathlen.isdigit():
             raise ValueError("Path length deve essere un numero intero.")
+        days = g("days")
+        if self.self_signed.get() and not days.isdigit():
+            raise ValueError("La validità deve essere un numero di giorni.")
         return core.CsrParams(
             common_name=g("cn"), organization=g("o"), org_unit=g("ou"), country=g("c"),
             state=g("st"), locality=g("l"), email=g("email"),
@@ -147,6 +159,7 @@ class App(tk.Tk):
             key_usages=[k for k, var in self.ku.items() if var.get()],
             ext_key_usages=[o for o, var in self.eku.items() if var.get()],
             is_ca=self.is_ca.get(), path_length=int(pathlen) if pathlen else None,
+            self_signed=self.self_signed.get(), validity_days=int(days) if days.isdigit() else 365,
         )
 
     def generate(self):
@@ -154,26 +167,30 @@ class App(tk.Tk):
             p = self.collect()
             self.config(cursor="watch")
             self.update_idletasks()
-            key_path, csr_path, pem = core.generate_and_save(p, self.v["out_dir"].get(), self.v["base"].get())
+            res = core.generate_and_save(p, self.v["out_dir"].get(), self.v["base"].get())
         except Exception as e:
             self.config(cursor="")
             messagebox.showerror("Errore", str(e))
             return
         self.config(cursor="")
-        self.show_result(key_path, csr_path, pem)
+        self.show_result(res)
 
-    def show_result(self, key_path, csr_path, pem):
+    def show_result(self, res):
         w = tk.Toplevel(self)
         w.title("Fatto")
-        w.geometry("640x420")
-        ttk.Label(w, text=f"Chiave privata: {key_path}\nCSR: {csr_path}", justify="left").pack(anchor="w", padx=8, pady=8)
-        t = tk.Text(w, wrap="none")
-        t.insert("1.0", pem)
-        t.pack(fill="both", expand=True, padx=8)
+        w.geometry("660x460")
+        ttk.Label(w, text=f"Salvato in: {res['folder']}", justify="left").pack(anchor="w", padx=8, pady=8)
+        nb = ttk.Notebook(w)
+        nb.pack(fill="both", expand=True, padx=8)
+        pems = [("CSR", res["csr_pem"])] + ([("Certificato", res["crt_pem"])] if res["crt_pem"] else [])
+        for title, pem in pems:
+            t = tk.Text(nb, wrap="none")
+            t.insert("1.0", pem)
+            nb.add(t, text=title)
         def copy():
             self.clipboard_clear()
-            self.clipboard_append(pem)
-        ttk.Button(w, text="Copia CSR", command=copy).pack(pady=8)
+            self.clipboard_append(pems[nb.index("current")][1])
+        ttk.Button(w, text="Copia", command=copy).pack(pady=8)
 
 
 if __name__ == "__main__":

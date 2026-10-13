@@ -19,3 +19,8 @@ In alternativa usa la GitHub Action in `.github/workflows/build.yml` per costrui
 Subject (CN, O, OU, C, ST, L, email), algoritmo (RSA 2048/3072/4096, EC P-256/384/521, Ed25519),
 hash, passphrase della chiave, SAN (DNS, IP, email, URI), Key Usage, Extended Key Usage, Basic Constraints.
 Cartella di salvataggio e nome file scelti dall'utente; la chiave è scritta con permessi 0600.
+
+## Certificato autofirmato e storage
+Spuntando "Crea anche certificato autofirmato" (con validità in giorni) viene generato anche il `.crt`,
+con le stesse estensioni del CSR. Ogni generazione crea una sottocartella `nome_AAAAMMGG-HHMMSS`
+nella cartella scelta, con `nome.key`, `nome.csr`, `nome.crt` (se richiesto) e `info.txt` con il riepilogo.
