@@ -1,0 +1,58 @@
+"""Apre l'app con dati di esempio e salva uno screenshot per ogni scheda in docs/ (usato in CI)."""
+import os
+import subprocess
+import sys
+import tempfile
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from PIL import Image, ImageGrab  # noqa: E402
+
+import app as wiz  # noqa: E402
+
+OUT = os.path.join(os.path.dirname(__file__), "..", "docs")
+os.makedirs(OUT, exist_ok=True)
+
+
+def grab(win, name):
+    win.update_idletasks()
+    win.update()
+    x, y, w, h = win.winfo_rootx(), win.winfo_rooty(), win.winfo_width(), win.winfo_height()
+    if sys.platform == "darwin":
+        tmp = os.path.join(tempfile.gettempdir(), "wiz_full.png")
+        subprocess.run(["screencapture", "-x", tmp], check=True)
+        img = Image.open(tmp)
+        scale = img.width / win.winfo_screenwidth()
+        img = img.crop((int(x * scale), int(y * scale), int((x + w) * scale), int((y + h) * scale)))
+    else:
+        img = ImageGrab.grab(bbox=(x, y, x + w, y + h), all_screens=True)
+    img.save(os.path.join(OUT, name))
+
+
+app = wiz.App()
+app.geometry("760x820+60+60")
+app.lift()
+app.attributes("-topmost", True)
+app.update()
+s = app.v
+s["cn"].set("www.esempio.it")
+s["o"].set("Esempio S.r.l.")
+s["ou"].set("IT")
+s["c"].set("IT")
+s["st"].set("MI")
+s["l"].set("Milano")
+s["email"].set("admin@esempio.it")
+s["base"].set("")
+app.san["dns"].insert("1.0", "www.esempio.it\nesempio.it\napi.esempio.it")
+app.san["ip"].insert("1.0", "192.0.2.10")
+app.ku["digital_signature"].set(True)
+app.ku["key_encipherment"].set(True)
+for oid in app.eku:
+    if oid == wiz.core.EXT_KEY_USAGES[0][0]:
+        app.eku[oid].set(True)
+s["key_type"].set("RSA 3072")
+app.self_signed.set(True)
+nb = app.winfo_children()[0]
+for idx, name in enumerate(["subject.png", "key.png", "san.png", "extensions.png"]):
+    nb.select(idx)
+    grab(app, name)
+app.destroy()

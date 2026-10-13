@@ -1,5 +1,7 @@
 """Wiz CSR - interfaccia grafica (Tkinter)."""
 import os
+import sys
+import tempfile
 import tkinter as tk
 import webbrowser
 from tkinter import filedialog, messagebox, ttk
@@ -200,5 +202,40 @@ class App(tk.Tk):
         ttk.Button(w, text="Copia", command=copy).pack(pady=8)
 
 
-if __name__ == "__main__":
+def selftest(report: str) -> int:
+    """Costruisce la finestra e genera chiave+CSR+certificato; scrive l'esito in `report`."""
+    lines_out, ok = [], True
+    try:
+        app = App()
+        app.update()
+        app.v["cn"].set("selftest.example")
+        app.v["c"].set("IT")
+        app.san["dns"].insert("1.0", "selftest.example\nwww.selftest.example")
+        app.ku["digital_signature"].set(True)
+        app.self_signed.set(True)
+        with tempfile.TemporaryDirectory() as tmp:
+            app.v["out_dir"].set(tmp)
+            p = app.collect()
+            res = core.generate_and_save(p, tmp, "")
+            for k in ("key", "csr", "crt"):
+                assert os.path.getsize(res[k]) > 0, k
+            lines_out.append("files: " + ", ".join(sorted(os.listdir(res["folder"]))))
+        app.destroy()
+        lines_out.append("selftest OK")
+    except Exception as e:  # noqa: BLE001
+        ok = False
+        lines_out.append(f"selftest FAILED: {e!r}")
+    with open(report, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines_out) + "\n")
+    return 0 if ok else 1
+
+
+def main() -> int:
+    if len(sys.argv) >= 3 and sys.argv[1] == "--selftest":
+        return selftest(sys.argv[2])
     App().mainloop()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
