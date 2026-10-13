@@ -1,6 +1,7 @@
 """Wiz CSR - interfaccia grafica (Tkinter)."""
 import os
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog, messagebox, ttk
 
 import csr_core as core
@@ -8,6 +9,9 @@ import csr_core as core
 
 def lines(widget: tk.Text) -> list:
     return [l.strip() for l in widget.get("1.0", "end").splitlines() if l.strip()]
+
+
+COFFEE_URL = "https://buymeacoffee.com/renero82"
 
 
 class App(tk.Tk):
@@ -47,6 +51,9 @@ class App(tk.Tk):
         ttk.Label(out, text="Ogni generazione crea una sottocartella nome_data-ora con key, csr, crt e info.txt.",
                   foreground="gray").grid(row=3, column=0, columnspan=3, sticky="w", padx=6, pady=(0, 4))
         ttk.Button(self, text="Genera", command=self.generate).pack(pady=(0, 8), ipadx=16, ipady=4)
+        link = tk.Label(self, text="☕ Offrimi un caffè", fg="#0b6bcb", cursor="hand2")
+        link.pack(pady=(0, 8))
+        link.bind("<Button-1>", lambda e: webbrowser.open(COFFEE_URL))
 
     # ---- tab ----
     def _entry_rows(self, parent, rows):

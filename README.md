@@ -1,5 +1,8 @@
 # Wiz CSR
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-renero82-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/renero82)
+
+
 App portabile (Windows / macOS) per generare chiave privata + CSR scegliendo tutti i parametri.
 
 ## Esecuzione da sorgente
