@@ -9,6 +9,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
+from i18n import t
+
 KEY_TYPES = ["RSA 2048", "RSA 3072", "RSA 4096", "EC P-256", "EC P-384", "EC P-521", "Ed25519"]
 HASHES = {"SHA-256": hashes.SHA256, "SHA-384": hashes.SHA384, "SHA-512": hashes.SHA512}
 
@@ -63,7 +65,7 @@ def generate_key(key_type: str):
         return ec.generate_private_key(curve())
     if key_type == "Ed25519":
         return ed25519.Ed25519PrivateKey.generate()
-    raise ValueError(f"Tipo di chiave non supportato: {key_type}")
+    raise ValueError(t("err_keytype", kt=key_type))
 
 
 def build_name(p: CsrParams) -> x509.Name:
@@ -81,7 +83,7 @@ def build_name(p: CsrParams) -> x509.Name:
         if val:
             attrs.append(x509.NameAttribute(oid, val))
     if not attrs:
-        raise ValueError("Specifica almeno un campo del Subject (es. Common Name).")
+        raise ValueError(t("err_subject"))
     return x509.Name(attrs)
 
 
@@ -89,7 +91,10 @@ def build_extensions(p: CsrParams) -> list:
     """Lista di (estensione, critical) condivisa tra CSR e certificato autofirmato."""
     exts = []
     sans = [x509.DNSName(d) for d in p.san_dns]
-    sans += [x509.IPAddress(ipaddress.ip_address(i)) for i in p.san_ip]
+    try:
+        sans += [x509.IPAddress(ipaddress.ip_address(i)) for i in p.san_ip]
+    except ValueError as e:
+        raise ValueError(t("err_value", e=e)) from None
     sans += [x509.RFC822Name(e) for e in p.san_email]
     sans += [x509.UniformResourceIdentifier(u) for u in p.san_uri]
     if sans:
@@ -111,7 +116,7 @@ def _sign_algo(p: CsrParams, key):
 
 def build_csr(p: CsrParams, key):
     if p.country.strip() and len(p.country.strip()) != 2:
-        raise ValueError("Il Country deve essere un codice di 2 lettere (es. IT).")
+        raise ValueError(t("err_country"))
     builder = x509.CertificateSigningRequestBuilder().subject_name(build_name(p))
     for ext, critical in build_extensions(p):
         builder = builder.add_extension(ext, critical=critical)
@@ -120,7 +125,7 @@ def build_csr(p: CsrParams, key):
 
 def build_self_signed(p: CsrParams, key):
     if p.validity_days < 1:
-        raise ValueError("La validità deve essere di almeno 1 giorno.")
+        raise ValueError(t("err_validity"))
     name = build_name(p)
     now = datetime.datetime.now(datetime.timezone.utc)
     builder = (x509.CertificateBuilder()
@@ -136,10 +141,11 @@ def build_self_signed(p: CsrParams, key):
 
 
 def _summary(p: CsrParams, files: list) -> str:
-    out = [f"Generato il: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}",
-           f"Subject: {build_name(p).rfc4514_string()}",
-           f"Chiave: {p.key_type}" + (f", hash {p.hash_name}" if p.key_type != "Ed25519" else ""),
-           f"Chiave cifrata con passphrase: {'sì' if p.passphrase else 'no'}"]
+    yn = lambda b: t("s_yes") if b else t("s_no")  # noqa: E731
+    out = [f"{t('s_generated')}: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}",
+           f"{t('s_subject')}: {build_name(p).rfc4514_string()}",
+           f"{t('s_key')}: {p.key_type}" + (f", {t('s_hash')} {p.hash_name}" if p.key_type != "Ed25519" else ""),
+           f"{t('s_enc')}: {yn(bool(p.passphrase))}"]
     for label, vals in (("SAN DNS", p.san_dns), ("SAN IP", p.san_ip),
                         ("SAN Email", p.san_email), ("SAN URI", p.san_uri)):
         if vals:
@@ -149,10 +155,11 @@ def _summary(p: CsrParams, files: list) -> str:
     if p.ext_key_usages:
         out.append("Extended Key Usage: " + ", ".join(l for o, l in EXT_KEY_USAGES if o in p.ext_key_usages))
     if p.is_ca:
-        out.append(f"CA: sì (path length: {p.path_length if p.path_length is not None else 'illimitata'})")
+        pl = p.path_length if p.path_length is not None else t("s_unlimited")
+        out.append(t("s_ca", pl=pl))
     if p.self_signed:
-        out.append(f"Autofirmato, validità: {p.validity_days} giorni")
-    out.append("File: " + ", ".join(files))
+        out.append(t("s_self", d=p.validity_days))
+    out.append(f"{t('s_files')}: " + ", ".join(files))
     return "\n".join(out) + "\n"
 
 
@@ -167,7 +174,7 @@ def generate_and_save(p: CsrParams, out_dir: str, base_name: str = ""):
     Ritorna un dict con i percorsi (folder, key, csr, crt|None) e i PEM (csr_pem, crt_pem|None).
     """
     if not out_dir or not os.path.isdir(out_dir):
-        raise ValueError("Scegli una cartella di destinazione valida.")
+        raise ValueError(t("err_outdir"))
     base = _safe_name(base_name or p.common_name or "certificato")
 
     key = generate_key(p.key_type)

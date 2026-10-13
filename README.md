@@ -25,7 +25,7 @@ Grab the latest build from the **[Releases page](https://github.com/renero82/wiz
 | Windows | `WizCSR-Windows.exe` | Single portable file. SmartScreen may warn, the app is not signed. |
 | macOS   | `WizCSR-macOS.zip`   | Apple Silicon. Unsigned: first launch with right-click > Open.     |
 
-> The interface is currently in Italian.
+> The interface is available in **English and Italian**: it follows your system language and you can switch it from the top-right corner.
 
 ## Features
 
@@ -37,6 +37,7 @@ Grab the latest build from the **[Releases page](https://github.com/renero82/wiz
 - **Self-signed certificate** (optional): same fields and extensions, validity in days
 - **Tidy storage**: you pick the folder; every run creates `name_YYYYMMDD-HHMMSS/` with
   `name.key` (permissions `0600`), `name.csr`, `name.crt` and an `info.txt` summary. Nothing is ever overwritten.
+- **English / Italian** interface, switchable on the fly
 - Everything runs locally: keys never leave your machine.
 
 | Key and hash | Extensions (Windows) |

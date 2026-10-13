@@ -28,21 +28,21 @@ def grab(win, name):
     img.save(os.path.join(OUT, name))
 
 
-app = wiz.App()
+app = wiz.App(lang="en")
 app.geometry("760x640+10+30")
 app.lift()
 app.attributes("-topmost", True)
 app.update()
 s = app.v
-s["cn"].set("www.esempio.it")
-s["o"].set("Esempio S.r.l.")
+s["cn"].set("www.example.com")
+s["o"].set("Example Ltd")
 s["ou"].set("IT")
-s["c"].set("IT")
-s["st"].set("MI")
-s["l"].set("Milano")
-s["email"].set("admin@esempio.it")
+s["c"].set("US")
+s["st"].set("California")
+s["l"].set("San Francisco")
+s["email"].set("admin@example.com")
 s["base"].set("")
-app.san["dns"].insert("1.0", "www.esempio.it\nesempio.it\napi.esempio.it")
+app.san["dns"].insert("1.0", "www.example.com\nexample.com\napi.example.com")
 app.san["ip"].insert("1.0", "192.0.2.10")
 app.ku["digital_signature"].set(True)
 app.ku["key_encipherment"].set(True)
@@ -51,7 +51,7 @@ for oid in app.eku:
         app.eku[oid].set(True)
 s["key_type"].set("RSA 3072")
 app.self_signed.set(True)
-nb = app.winfo_children()[0]
+nb = app.nb
 for idx, name in enumerate(["subject.png", "key.png", "san.png", "extensions.png"]):
     nb.select(idx)
     grab(app, name)
