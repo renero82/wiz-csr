@@ -64,6 +64,12 @@ pyinstaller --noconsole --windowed --name WizCSR app.py             # macOS (.ap
 Or let GitHub do it: the [workflow](.github/workflows/build.yml) builds Windows and macOS,
 runs a self-test on the built binaries and publishes a release when you push a `v*` tag.
 
+## Code signing
+
+Free code signing for the Windows builds is planned through the [SignPath Foundation](https://signpath.org).
+It is not active yet: current releases are unsigned. See the [code signing policy](CODE_SIGNING.md)
+for status, roles and privacy policy.
+
 ## Support
 
 If it saved you some time, you can [buy me a coffee](https://buymeacoffee.com/renero82) ☕ and a ⭐ on the repo is always appreciated.
