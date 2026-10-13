@@ -29,7 +29,7 @@ def grab(win, name):
 
 
 app = wiz.App()
-app.geometry("760x820+60+60")
+app.geometry("760x640+10+30")
 app.lift()
 app.attributes("-topmost", True)
 app.update()

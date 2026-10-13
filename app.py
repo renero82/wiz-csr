@@ -20,8 +20,8 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Wiz CSR")
-        self.geometry("760x820")
-        self.minsize(700, 640)
+        self.geometry("760x640")
+        self.minsize(700, 600)
 
         nb = ttk.Notebook(self)
         nb.pack(fill="both", expand=True, padx=8, pady=(8, 0))
@@ -119,20 +119,21 @@ class App(tk.Tk):
     def _tab_ext(self, nb):
         f = ttk.Frame(nb)
         nb.add(f, text="Estensioni")
+        f.columnconfigure((0, 1), weight=1)
         ku = ttk.LabelFrame(f, text="Key Usage (critical)")
-        ku.pack(fill="x", padx=8, pady=8)
+        ku.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         self.ku = {}
         for k, label in core.KEY_USAGES:
             self.ku[k] = tk.BooleanVar()
             ttk.Checkbutton(ku, text=label, variable=self.ku[k]).pack(anchor="w", padx=8)
         eku = ttk.LabelFrame(f, text="Extended Key Usage")
-        eku.pack(fill="x", padx=8, pady=8)
+        eku.grid(row=0, column=1, sticky="nsew", padx=8, pady=8)
         self.eku = {}
         for oid, label in core.EXT_KEY_USAGES:
             self.eku[oid] = tk.BooleanVar()
             ttk.Checkbutton(eku, text=label, variable=self.eku[oid]).pack(anchor="w", padx=8)
         bc = ttk.LabelFrame(f, text="Basic Constraints")
-        bc.pack(fill="x", padx=8, pady=8)
+        bc.grid(row=1, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
         self.is_ca = tk.BooleanVar()
         self.v["pathlen"] = tk.StringVar()
         ttk.Checkbutton(bc, text="CA (certificato di autorità)", variable=self.is_ca).pack(anchor="w", padx=8)
