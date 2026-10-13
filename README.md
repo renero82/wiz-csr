@@ -1,29 +1,72 @@
 # Wiz CSR
 
+[![Build](https://github.com/renero82/wiz-csr/actions/workflows/build.yml/badge.svg)](https://github.com/renero82/wiz-csr/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/renero82/wiz-csr)](https://github.com/renero82/wiz-csr/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-renero82-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/renero82)
 
+**A small portable app to generate private keys, CSRs and self-signed certificates with a point-and-click UI.**
+No OpenSSL command line, no config files, no install: download, run, fill in the form.
 
-App portabile (Windows / macOS) per generare chiave privata + CSR scegliendo tutti i parametri.
+![Wiz CSR on macOS](docs/macos-subject.png)
 
-## Esecuzione da sorgente
-    pip install cryptography
-    python app.py
+## Why
 
-## Build portabile (da lanciare sul sistema di destinazione)
-    pip install -r requirements.txt
-    pyinstaller --noconsole --onefile --windowed --name WizCSR app.py
+Writing an `openssl req` command with the right `-subj`, SAN list and extensions is easy to get wrong,
+and a CSR with the wrong SAN costs you a round trip with the CA. Wiz CSR gives you every field in a form
+and saves everything in a tidy folder.
 
-- Windows: `dist/WizCSR.exe`
-- macOS: `dist/WizCSR.app` (al primo avvio: tasto destro > Apri, perché non è firmata)
+## Download
 
-In alternativa usa la GitHub Action in `.github/workflows/build.yml` per costruire entrambe.
+Grab the latest build from the **[Releases page](https://github.com/renero82/wiz-csr/releases/latest)**:
 
-## Parametri
-Subject (CN, O, OU, C, ST, L, email), algoritmo (RSA 2048/3072/4096, EC P-256/384/521, Ed25519),
-hash, passphrase della chiave, SAN (DNS, IP, email, URI), Key Usage, Extended Key Usage, Basic Constraints.
-Cartella di salvataggio e nome file scelti dall'utente; la chiave è scritta con permessi 0600.
+| System  | File                 | Notes                                                              |
+|---------|----------------------|--------------------------------------------------------------------|
+| Windows | `WizCSR-Windows.exe` | Single portable file. SmartScreen may warn, the app is not signed. |
+| macOS   | `WizCSR-macOS.zip`   | Apple Silicon. Unsigned: first launch with right-click > Open.     |
 
-## Certificato autofirmato e storage
-Spuntando "Crea anche certificato autofirmato" (con validità in giorni) viene generato anche il `.crt`,
-con le stesse estensioni del CSR. Ogni generazione crea una sottocartella `nome_AAAAMMGG-HHMMSS`
-nella cartella scelta, con `nome.key`, `nome.csr`, `nome.crt` (se richiesto) e `info.txt` con il riepilogo.
+> The interface is currently in Italian.
+
+## Features
+
+- **Subject**: CN, O, OU, C, ST, L, email
+- **Keys**: RSA 2048 / 3072 / 4096, EC P-256 / P-384 / P-521, Ed25519, with optional passphrase (encrypted PKCS#8)
+- **Signature hash**: SHA-256 / 384 / 512
+- **SAN**: DNS names, IP addresses, emails, URIs
+- **Extensions**: Key Usage, Extended Key Usage, Basic Constraints (CA, path length)
+- **Self-signed certificate** (optional): same fields and extensions, validity in days
+- **Tidy storage**: you pick the folder; every run creates `name_YYYYMMDD-HHMMSS/` with
+  `name.key` (permissions `0600`), `name.csr`, `name.crt` and an `info.txt` summary. Nothing is ever overwritten.
+- Everything runs locally: keys never leave your machine.
+
+| Key and hash | Extensions (Windows) |
+|---|---|
+| ![Key tab](docs/macos-key.png) | ![Extensions tab](docs/windows-extensions.png) |
+
+## Run from source
+
+```bash
+pip install cryptography
+python app.py
+```
+
+Needs Python 3.10+ with Tkinter (included in the python.org installers).
+
+## Build it yourself
+
+```bash
+pip install -r requirements.txt
+pyinstaller --noconsole --windowed --onefile --name WizCSR app.py   # Windows
+pyinstaller --noconsole --windowed --name WizCSR app.py             # macOS (.app)
+```
+
+Or let GitHub do it: the [workflow](.github/workflows/build.yml) builds Windows and macOS,
+runs a self-test on the built binaries and publishes a release when you push a `v*` tag.
+
+## Support
+
+If it saved you some time, you can [buy me a coffee](https://buymeacoffee.com/renero82) ☕ and a ⭐ on the repo is always appreciated.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
