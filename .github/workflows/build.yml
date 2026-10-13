@@ -80,5 +80,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" WizCSR-Windows.exe WizCSR-macOS.zip \
+          gh release create "${{ github.ref_name }}" dist/WizCSR-Windows.exe dist/WizCSR-macOS.zip \
             --repo "${{ github.repository }}" --title "Wiz CSR ${{ github.ref_name }}" --generate-notes
